@@ -87,13 +87,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore MediCare.csproj
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build MediCare.csproj --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish --configuration Release --no-build -o publish
+        run: dotnet publish MediCare.csproj --configuration Release --no-build -o publish
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
