@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-          git diff --name-only HEAD~1 HEAD || true >> $GITHUB_OUTPUT
+          git diff --name-only HEAD~1 HEAD >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Change Statistics
@@ -63,7 +63,7 @@ jobs:
         shell: bash
         run: |
           echo "change_stats<<EOF" >> $GITHUB_OUTPUT
-          git diff --stat HEAD~1 HEAD || true >> $GITHUB_OUTPUT
+          git diff --stat HEAD~1 HEAD >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Capture Safe Change Summary
@@ -72,7 +72,7 @@ jobs:
         run: |
           echo "code_changes<<EOF" >> $GITHUB_OUTPUT
           echo "Source code updated and reviewed for deployment." >> $GITHUB_OUTPUT
-          git diff --stat HEAD~1 HEAD || true >> $GITHUB_OUTPUT
+          git diff --stat HEAD~1 HEAD >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Setup .NET
@@ -220,7 +220,7 @@ jobs:
           --region ${{ env.REGION }} \
           --platform managed \
           --allow-unauthenticated \
-          --port 8080
+          --port 8080 \
           --timeout 300
 
       - name: Get Service URL
@@ -256,7 +256,7 @@ jobs:
           html_body: |
             <html>
             <body style="font-family:Arial,Helvetica,sans-serif;color:#333;line-height:1.6;">
-              
+
               <h2 style="color:#198754;">Deployment Successful</h2>
 
               <p>Dear <b>${{ env.MANAGER_NAME }}</b>,</p>
@@ -284,7 +284,6 @@ jobs:
                     </a>
                   </td>
                 </tr>
-
               </table>
 
               <br>
