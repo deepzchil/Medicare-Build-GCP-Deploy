@@ -1,0 +1,203 @@
+@model MediCare.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["ActivePage"] = "Dashboard";
+}
+
+<div class="page-content">
+    <!-- Top Header -->
+    <header class="page-header">
+        <div class="page-header-left">
+            <div class="page-icon">
+                <i class="fa-solid fa-notes-medical"></i>
+            </div>
+            <div>
+                <h1 class="page-title">MediCare Hospital Dashboard</h1>
+                <p class="page-subtitle">Manage your hospital professionally</p>
+            </div>
+        </div>
+        <div class="page-header-right">
+            <button class="notif-btn">
+                <i class="fa-regular fa-bell"></i>
+                @if (Model.NotificationCount > 0)
+                {
+                    <span class="notif-badge">@Model.NotificationCount</span>
+                }
+            </button>
+            <div class="admin-profile">
+                <div class="admin-avatar"><i class="fa-solid fa-user"></i></div>
+                <span>Admin</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stat Cards -->
+    <section class="stats-grid">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="fa-solid fa-user-doctor"></i></div>
+            <div class="stat-body">
+                <p class="stat-label">Total Doctors</p>
+                <p class="stat-value">@Model.TotalDoctors</p>
+                <a href="/Doctors" class="stat-link">View all <i class="fa-solid fa-chevron-right"></i></a>
+            </div>
+        </div>
+        <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-body">
+                <p class="stat-label">Total Patients</p>
+                <p class="stat-value">@Model.TotalPatients.ToString("N0")</p>
+                <a href="/Patients" class="stat-link">View all <i class="fa-solid fa-chevron-right"></i></a>
+            </div>
+        </div>
+        <div class="stat-card stat-purple">
+            <div class="stat-icon"><i class="fa-regular fa-calendar-check"></i></div>
+            <div class="stat-body">
+                <p class="stat-label">Today's Appointments</p>
+                <p class="stat-value">@Model.TodaysAppointments</p>
+                <a href="/Appointments" class="stat-link">View all <i class="fa-solid fa-chevron-right"></i></a>
+            </div>
+        </div>
+        <div class="stat-card stat-yellow">
+            <div class="stat-icon"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+            <div class="stat-body">
+                <p class="stat-label">Pending Payments</p>
+                <p class="stat-value">@Model.PendingPayments</p>
+                <a href="/Billing" class="stat-link">View all <i class="fa-solid fa-chevron-right"></i></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Module Cards -->
+    <section class="module-grid">
+        <div class="module-card module-blue">
+            <div class="module-icon"><i class="fa-solid fa-user-doctor"></i></div>
+            <div class="module-body">
+                <h3>Doctors</h3>
+                <p>Manage doctor profiles, specialties and schedules</p>
+            </div>
+            <a href="/Doctors" class="module-btn btn-blue">Manage Doctors</a>
+        </div>
+        <div class="module-card module-green">
+            <div class="module-icon module-icon-green"><i class="fa-solid fa-users"></i></div>
+            <div class="module-body">
+                <h3>Patients</h3>
+                <p>View and manage patient records and history</p>
+            </div>
+            <a href="/Patients" class="module-btn btn-green">Manage Patients</a>
+        </div>
+        <div class="module-card module-red">
+            <div class="module-icon module-icon-red"><i class="fa-regular fa-calendar-check"></i></div>
+            <div class="module-body">
+                <h3>Appointments</h3>
+                <p>Schedule and manage appointments efficiently</p>
+            </div>
+            <a href="/Appointments" class="module-btn btn-red">Manage Appointments</a>
+        </div>
+    </section>
+
+    <!-- Bottom Columns -->
+    <div class="bottom-grid">
+        <!-- Recent Doctors Table -->
+        <div class="card doctors-table-card">
+            <div class="card-header">
+                <h2>Recent Doctors</h2>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Doctor Name</th>
+                        <th>Specialty</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var doc in Model.RecentDoctors)
+                    {
+                        <tr>
+                            <td>
+                                <div class="doc-name-cell">
+                                    <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                                    <div>
+                                        <p class="doc-name">@doc.Name</p>
+                                        <p class="doc-id">ID: @doc.Id</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@doc.Specialty</td>
+                            <td>@doc.Phone</td>
+                            <td>
+                                <span class="status-badge status-@doc.Status.ToLower().Replace(" ", "-")">
+                                    @doc.Status
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-cell">
+                                    <a href="/Doctors/@doc.Id" class="action-link">View</a>
+                                    <button class="action-more"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="card-footer">
+                <a href="/Doctors" class="footer-link">View all doctors</a>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Today's Schedule -->
+            <div class="card schedule-card">
+                <div class="card-header">
+                    <h2>Today's Schedule</h2>
+                </div>
+                <div class="schedule-list">
+                    @foreach (var item in Model.TodaysSchedule)
+                    {
+                        <div class="schedule-item">
+                            <span class="schedule-time">@item.Time</span>
+                            <span class="schedule-doctor">@item.DoctorName</span>
+                            <span class="appt-badge appt-@item.AppointmentType.ToLower()">@item.AppointmentType</span>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <a href="/Appointments" class="footer-link">View full schedule <i class="fa-solid fa-chevron-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card quick-actions-card">
+                <div class="card-header">
+                    <h2>Quick Actions</h2>
+                </div>
+                <div class="quick-actions-list">
+                    <a href="/Doctors/Create" class="quick-action-item">
+                        <div class="qa-icon qa-add"><i class="fa-solid fa-circle-plus"></i></div>
+                        <span>Add New Doctor</span>
+                        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+                    </a>
+                    <a href="/Patients/Create" class="quick-action-item">
+                        <div class="qa-icon qa-patient"><i class="fa-solid fa-user-plus"></i></div>
+                        <span>Add New Patient</span>
+                        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+                    </a>
+                    <a href="/Appointments/Create" class="quick-action-item">
+                        <div class="qa-icon qa-appt"><i class="fa-regular fa-calendar-plus"></i></div>
+                        <span>Schedule Appointment</span>
+                        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+                    </a>
+                    <a href="/Reports" class="quick-action-item">
+                        <div class="qa-icon qa-report"><i class="fa-solid fa-chart-bar"></i></div>
+                        <span>Generate Report</span>
+                        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

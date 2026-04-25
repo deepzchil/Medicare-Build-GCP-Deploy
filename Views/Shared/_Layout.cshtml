@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MediCare</title>
+    <link rel="stylesheet" href="~/css/medicare.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><i class="fa-solid fa-notes-medical"></i></div>
+                <span class="brand-name">MediCare</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/Dashboard" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Dashboard"  ? "active" : "")">
+                    <i class="fa-solid fa-house"></i><span>Dashboard</span>
+                </a>
+                <a href="/Doctors" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Doctors"      ? "active" : "")">
+                    <i class="fa-solid fa-user-doctor"></i><span>Doctors</span>
+                </a>
+                <a href="/Patients" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Patients"    ? "active" : "")">
+                    <i class="fa-solid fa-users"></i><span>Patients</span>
+                </a>
+                <a href="/Appointments" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Appointments" ? "active" : "")">
+                    <i class="fa-regular fa-calendar-check"></i><span>Appointments</span>
+                </a>
+                <a href="/Billing" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Billing"      ? "active" : "")">
+                    <i class="fa-solid fa-file-invoice-dollar"></i><span>Billing</span>
+                </a>
+                <a href="/Reports" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Reports"      ? "active" : "")">
+                    <i class="fa-solid fa-chart-bar"></i><span>Reports</span>
+                </a>
+                <a href="/Prescription" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Prescription" ? "active" : "")">
+                    <i class="fa-solid fa-prescription"></i><span>Prescription</span>
+                </a>
+                <a href="/Login" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Login"          ? "active" : "")">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Login</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main area -->
+        <div class="main-area">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="~/js/medicare.js" asp-append-version="true"></script>
+</body>
+</html>
