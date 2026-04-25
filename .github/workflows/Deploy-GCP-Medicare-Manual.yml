@@ -1,16 +1,8 @@
-name: CI/CD Pipeline with Change Report + Manager Approval (Google Cloud)
+name: CI/CD Pipeline with Change Report + Manager Approval + Manual Trigger (Google Cloud)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
-  pull_request:
-    branches:
-      - main
-  
-  #workflow_dispatch:
-      
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
@@ -63,7 +55,7 @@ jobs:
         shell: bash
         run: |
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-          git diff --name-only HEAD~1 HEAD >> $GITHUB_OUTPUT || true
+          git diff --name-only HEAD~1 HEAD || true >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Change Statistics
@@ -71,7 +63,7 @@ jobs:
         shell: bash
         run: |
           echo "change_stats<<EOF" >> $GITHUB_OUTPUT
-          git diff --stat ${{ github.event.before }} ${{ github.sha }} >> $GITHUB_OUTPUT || true
+          git diff --stat HEAD~1 HEAD || true >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Capture Safe Change Summary
@@ -80,9 +72,9 @@ jobs:
         run: |
           echo "code_changes<<EOF" >> $GITHUB_OUTPUT
           echo "Source code updated and reviewed for deployment." >> $GITHUB_OUTPUT
-          git diff --stat ${{ github.event.before }} ${{ github.sha }} >> $GITHUB_OUTPUT || true
+          git diff --stat HEAD~1 HEAD || true >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-      
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -228,20 +220,19 @@ jobs:
           --region ${{ env.REGION }} \
           --platform managed \
           --allow-unauthenticated \
-          --port 8080 \
+          --port 8080
           --timeout 300
 
       - name: Get Service URL
         id: url
         run: |
-          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --format='value(status.url)')
-
-          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --region ${{ env.REGION }} \
+          --format='value(status.url)')
+          echo "service_url=$URL" >> $GITHUB_OUTPUT
 
 # -------------------------------------------------
-# JOB 5 - SUCCESS EMAIL
+# JOB 5 - SUCCESS MAIL
 # -------------------------------------------------
   success-mail:
     name: Send Success Email
@@ -259,7 +250,7 @@ jobs:
           secure: false
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Production Deployment Successful for Google Cloud | ${{ github.repository }}
+          subject: Production Deployment Successful | ${{ github.repository }}
           to: ${{ env.MANAGER_EMAIL }}
           from: ${{ secrets.EMAIL_USERNAME }}
           html_body: |
