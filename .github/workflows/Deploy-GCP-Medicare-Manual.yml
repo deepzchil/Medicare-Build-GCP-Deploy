@@ -223,7 +223,7 @@ jobs:
             </html>
 
 # -------------------------------------------------
-# JOB 3 - WAIT FOR MANAGER APPROVAL
+# JOB 3 - WAITING FOR MANAGER APPROVAL
 # -------------------------------------------------
   approval:
     name: Production Approval
