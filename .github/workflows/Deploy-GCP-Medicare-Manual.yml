@@ -224,7 +224,9 @@ jobs:
 # -------------------------------------------------
   deploy:
     name: Deploy to GCP Cloud Run Production
-    needs: approval
+    needs:
+      - approval
+      - build
     runs-on: ubuntu-latest
 
     outputs:
@@ -234,6 +236,128 @@ jobs:
       name: production
 
     steps:
+
+      # -----------------------------------------
+      # STEP 1 - SEND APPROVED / DEPLOY START MAIL
+      # -----------------------------------------
+      - name: Send Approval Confirmed Mail
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Deployment Approved & Started | ${{ github.repository }}
+          to: ${{ env.MANAGER_EMAIL }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          html_body: |
+            <html>
+            <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#333;">
+
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding:30px;">
+
+                    <table width="700" cellpadding="0" cellspacing="0" border="0"
+                      style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+
+                      <tr>
+                        <td style="background:#198754;color:#ffffff;padding:20px 30px;">
+                          <h2 style="margin:0;">Deployment Approved</h2>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style="padding:30px;">
+
+                          <p>Dear <b>${{ env.MANAGER_NAME }}</b>,</p>
+
+                          <p>
+                            Your approval has been successfully received for the production deployment.
+                            The deployment process has now started for the application below.
+                          </p>
+
+                          <h3 style="color:#0d6efd;margin-top:25px;">Deployment Details</h3>
+
+                          <table width="100%" cellpadding="8" cellspacing="0"
+                            style="border-collapse:collapse;border:1px solid #dee2e6;">
+
+                            <tr>
+                              <td style="background:#f8f9fa;"><b>Application</b></td>
+                              <td>${{ github.repository }}</td>
+                            </tr>
+
+                            <tr>
+                              <td style="background:#f8f9fa;"><b>Branch</b></td>
+                              <td>${{ github.ref_name }}</td>
+                            </tr>
+
+                            <tr>
+                              <td style="background:#f8f9fa;"><b>Approved By</b></td>
+                              <td>${{ env.MANAGER_NAME }}</td>
+                            </tr>
+
+                            <tr>
+                              <td style="background:#f8f9fa;"><b>Triggered By</b></td>
+                              <td>${{ github.actor }}</td>
+                            </tr>
+
+                            <tr>
+                              <td style="background:#f8f9fa;"><b>Status</b></td>
+                              <td style="color:#fd7e14;"><b>Deployment In Progress</b></td>
+                            </tr>
+
+                            <tr>
+                              <td style="background:#f8f9fa;"><b>Commit Message</b></td>
+                              <td>${{ needs.build.outputs.commit_message }}</td>
+                            </tr>
+
+                          </table>
+
+                          <h3 style="color:#198754;margin-top:25px;">
+                            Resolved Issues
+                          </h3>
+
+                          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="
+                                background:#f8f9fa;
+                                border:1px solid #dee2e6;
+                                padding:15px;
+                                font-family:Consolas,monospace;
+                                font-size:14px;
+                                white-space:pre-wrap;
+                                line-height:1.6;">
+                            ${{ needs.build.outputs.resolved_issues }}
+                              </td>
+                            </tr>
+                          </table>
+
+                          <p style="margin-top:25px;">
+                            A final confirmation email will be sent once deployment is completed successfully.
+                          </p>
+
+                          <p style="margin-top:30px;">
+                            Regards,<br>
+                            <b>DevOps Automation Team</b>
+                          </p>
+
+                        </td>
+                      </tr>
+
+                    </table>
+
+                  </td>
+                </tr>
+              </table>
+
+            </body>
+            </html>
+
+      # -----------------------------------------
+      # STEP 2 - AUTH TO GCP
+      # -----------------------------------------
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v3
         with:
@@ -242,6 +366,9 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3
 
+      # -----------------------------------------
+      # STEP 3 - DEPLOY
+      # -----------------------------------------
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
@@ -252,6 +379,9 @@ jobs:
           --port 8080 \
           --timeout 300
 
+      # -----------------------------------------
+      # STEP 4 - GET URL
+      # -----------------------------------------
       - name: Get Service URL
         id: url
         run: |
@@ -316,11 +446,27 @@ jobs:
               </table>
 
               <br>
-              <h3 style="color:#198754;">Resolved Issues</h3>
+              <h3 style="color:#198754; margin-bottom:10px; font-size:18px;">
+                Resolved Issues
+              </h3>
 
-              <pre style="background:#f8f9fa;padding:12px;border:1px solid #ddd;">
-              ${{ needs.build.outputs.resolved_issues }}
-              </pre>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; margin-bottom:20px;">
+                <tr>
+                  <td style="
+                    background-color:#f8f9fa;
+                    border:1px solid #dee2e6;
+                    border-radius:6px;
+                    padding:16px;
+                    font-family:Consolas, Monaco, 'Courier New', monospace;
+                    font-size:14px;
+                    color:#212529;
+                    white-space:pre-wrap;
+                    line-height:1.6;
+                ">
+            ${{ needs.build.outputs.resolved_issues }}
+                  </td>
+                </tr>
+              </table>
               
               <p>
                 Production environment is now live and updated successfully.
