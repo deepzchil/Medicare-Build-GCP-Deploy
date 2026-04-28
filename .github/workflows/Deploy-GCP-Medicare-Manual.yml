@@ -177,19 +177,7 @@ jobs:
 
                         <h3 style="color:#198754;margin-top:25px;">Resolved Issues</h3>
 
-                        <table width="100%" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td style="
-                              background:#f8f9fa;
-                              border:1px solid #dee2e6;
-                              padding:16px;
-                              font-family:Consolas,monospace;
-                              white-space:pre-wrap;
-                              line-height:1.6;">
-                              ${{ needs.build.outputs.resolved_issues }}
-                            </td>
-                          </tr>
-                        </table>
+                        <pre style="background:#f8f9fa;padding:16px;border:1px solid #dee2e6;white-space:pre-wrap;">${{ needs.build.outputs.resolved_issues }}</pre>
 
                         <h3 style="color:#0d6efd;margin-top:25px;">Approval Steps</h3>
 
