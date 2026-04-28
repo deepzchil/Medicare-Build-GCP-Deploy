@@ -238,8 +238,8 @@ jobs:
     outputs:
       service_url: ${{ steps.url.outputs.service_url }}
 
-    environment:
-      name: production
+    #environment:
+      #name: production
 
     steps:
       - name: Authenticate to GCP
@@ -325,6 +325,72 @@ jobs:
               <p>Production environment is now live.</p>
 
               <p>Regards,<br><b>DevOps Automation Team</b></p>
+
+            </body>
+            </html>
+
+
+# -------------------------------------------------
+# JOB 6 - FAILURE MAIL
+# -------------------------------------------------
+  failure-mail:
+    name: Send Deployment Failure Mail
+    if: failure()
+    needs:
+      - deploy
+      - build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Failure Mail
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Deployment Failed | ${{ github.repository }}
+          to: ${{ env.MANAGER_EMAIL }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+
+          html_body: |
+            <html>
+            <body style="font-family:Arial,Helvetica,sans-serif;color:#333;line-height:1.6;">
+
+              <h2 style="color:#dc3545;">Production Deployment Failed</h2>
+
+              <p>Dear <b>${{ env.MANAGER_NAME }}</b>,</p>
+
+              <p>
+                The approved production deployment for
+                <b>${{ github.repository }}</b>
+                has failed during execution.
+              </p>
+
+              <table border="1" cellpadding="8" cellspacing="0"
+                style="border-collapse:collapse;width:100%;">
+
+                <tr><td><b>Application</b></td><td>${{ github.repository }}</td></tr>
+                <tr><td><b>Branch</b></td><td>${{ github.ref_name }}</td></tr>
+                <tr><td><b>Status</b></td><td style="color:#dc3545;"><b>FAILED</b></td></tr>
+                <tr><td><b>Triggered By</b></td><td>${{ github.actor }}</td></tr>
+                <tr><td><b>Commit Message</b></td><td>${{ needs.build.outputs.commit_message }}</td></tr>
+
+              </table>
+
+              <h3 style="color:#dc3545;margin-top:25px;">Resolved Issues Included in Release</h3>
+
+              <pre style="background:#f8f9fa;padding:16px;border:1px solid #dee2e6;white-space:pre-wrap;">${{ needs.build.outputs.resolved_issues }}</pre>
+
+              <p style="margin-top:20px;">
+                Please review GitHub Actions logs for failure details and redeploy after correction.
+              </p>
+
+              <p>
+                Regards,<br>
+                <b>DevOps Automation Team</b>
+              </p>
 
             </body>
             </html>
