@@ -8,6 +8,8 @@ env:
   REGION: us-central1
   DOTNET_VERSION: 8.0.x
   SERVICE_NAME: medicare-app
+  ARTIFACT_REPO: hospital-repo
+
 
   LEAD_EMAIL: ${{ vars.LEAD_EMAIL }}
   LEAD_NAME: ${{ vars.LEAD_NAME }}
@@ -147,12 +149,12 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-          -t us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/hospital-repo/${{ env.SERVICE_NAME }}:latest .
+          -t us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:latest .
 
       - name: Push Docker Image
         run: |
           docker push \
-          us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/hospital-repo/${{ env.SERVICE_NAME }}:latest
+          us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:latest
 
 # -------------------------------------------------
 # JOB 2 - LEAD APPROVAL EMAIL
@@ -279,44 +281,26 @@ jobs:
 
           html_body: |
             <html>
-            <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#333;">
+            <body style="font-family:Arial,Helvetica,sans-serif;color:#333;line-height:1.6;">
+              <p>Dear <b>${{ env.MANAGER_NAME }}</b>,</p>
+              
+              <p>
+                A new production build has completed successfully and is now waiting for your approval.
+              </p>
+                
+                <h3 style="color:#0d6efd;">Deployment Summary</h3>
 
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td align="center" style="padding:30px;">
-
-                  <table width="720" cellpadding="0" cellspacing="0"
-                    style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-
-                    <tr>
-                      <td style="background:#0d6efd;color:#ffffff;padding:22px 30px;">
-                        <h2 style="margin:0;">Production Deployment Approval Required</h2>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td style="padding:30px;">
-
-                        <p>Dear <b>${{ env.MANAGER_NAME }}</b>,</p>
-
-                        <p>
-                          A new production build has completed successfully and is now waiting for your approval.
-                        </p>
-
-                        <h3 style="color:#0d6efd;">Deployment Summary</h3>
-
-                        <table width="100%" cellpadding="8" cellspacing="0"
-                          style="border-collapse:collapse;border:1px solid #dee2e6;">
-
-                          <tr><td style="background:#f8f9fa;"><b>Repository</b></td><td>${{ github.repository }}</td></tr>
-                          <tr><td style="background:#f8f9fa;"><b>Branch</b></td><td>${{ github.ref_name }}</td></tr>
-                          <tr><td style="background:#f8f9fa;"><b>Status</b></td><td style="color:#198754;"><b>Ready for Approval</b></td></tr>
-                          <tr><td style="background:#f8f9fa;"><b>Requested By</b></td><td>${{ github.actor }}</td></tr>
-                          <tr><td style="background:#f8f9fa;"><b>Commit ID</b></td><td>${{ github.sha }}</td></tr>
-                          <tr><td style="background:#f8f9fa;"><b>Commit Message</b></td><td>${{ needs.build.outputs.commit_message }}</td></tr>
-                          <tr><td style="background:#f8f9fa;"><b>Environment</b></td><td>Production</td></tr>
-
-                        </table>
+                <table border="1" cellpadding="8" cellspacing="0" 
+                  style="border-collapse:collapse;width:100%;">
+                
+                <tr><td><b>Repository</b></td><td>${{ github.repository }}</td></tr>
+                <tr><td><b>Branch</b></td><td>${{ github.ref_name }}</td></tr>
+                <tr><td><b>Status</b></td><td style="color:green;"><b>SUCCESS</b></td></tr>
+                <tr><td><b>Triggered By</b></td><td>${{ github.actor }}</td></tr>
+                <tr><td><b>Commit ID</b></td><td>${{ github.sha }}</td></tr>
+                <tr><td><b>Commit Message</b></td><td>${{ needs.build.outputs.commit_message }}</td></tr>
+                <tr><td><b>Environment</b></td><td>Production</td></tr>
+              </table>
 
                         <h3 style="color:#198754;margin-top:25px;">Resolved Issues</h3>
 
@@ -393,7 +377,7 @@ jobs:
       - name: Deploy Application
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/hospital-repo/${{ env.SERVICE_NAME }}:latest \
+          --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:latest \
           --region ${{ env.REGION }} \
           --platform managed \
           --allow-unauthenticated \
@@ -449,9 +433,13 @@ jobs:
               <table border="1" cellpadding="8" cellspacing="0"
                 style="border-collapse:collapse;width:100%;">
 
-                <tr><td><b>Application</b></td><td>${{ github.repository }}</td></tr>
-                <tr><td><b>Status</b></td><td style="color:#198754;"><b>SUCCESSFUL</b></td></tr>
+                <tr><td><b>Repository</b></td><td>${{ github.repository }}</td></tr>
                 <tr><td><b>Branch</b></td><td>${{ github.ref_name }}</td></tr>
+                <tr><td><b>Status</b></td><td style="color:green;"><b>SUCCESS</b></td></tr>
+                <tr><td><b>Triggered By</b></td><td>${{ github.actor }}</td></tr>
+                <tr><td><b>Commit ID</b></td><td>${{ github.sha }}</td></tr>
+                <tr><td><b>Commit Message</b></td><td>${{ needs.build.outputs.commit_message }}</td></tr>
+                <tr><td><b>Environment</b></td><td>Production</td></tr>
                 <tr><td><b>Application URL</b></td>
                 <td>
                   <a href="${{ needs.deploy.outputs.service_url }}">
