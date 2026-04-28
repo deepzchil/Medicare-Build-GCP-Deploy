@@ -226,7 +226,7 @@ jobs:
         run: echo "Waiting for manager approval"
 
 # -------------------------------------------------
-# JOB 4 - DEPLOY AFTER APPROVAL
+# JOB 4 - DEPLOY AFTER APPROVAL to GCP Cloud Run
 # -------------------------------------------------
   deploy:
     name: Deploy to GCP Cloud Run
