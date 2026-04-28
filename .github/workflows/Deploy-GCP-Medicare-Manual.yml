@@ -75,6 +75,34 @@ jobs:
           git diff --stat HEAD~1 HEAD >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
+
+      - name: Fetch Fixed GitHub Issues
+        id: issues
+        uses: actions/github-script@v7
+        with:
+         script: |
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+
+          const issues = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'closed',
+            sort: 'updated',
+            direction: 'desc',
+            per_page: 5
+          });
+
+          let output = '';
+
+          for (const issue of issues.data) {
+            if (!issue.pull_request) {
+              output += `#${issue.number} - ${issue.title}\n`;
+            }
+          }
+
+          core.setOutput("resolved_issues", output || "No recent resolved issues found.");
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -288,14 +316,7 @@ jobs:
 
               <br>
 
-              <h3 style="color:#0d6efd;">Files Changed</h3>
-              <pre style="background:#f4f4f4;padding:12px;border:1px solid #ddd;">${{ needs.build.outputs.changed_files }}</pre>
-
-              <h3 style="color:#0d6efd;">Change Statistics</h3>
-              <pre style="background:#f8f9fa;padding:12px;border:1px solid #ddd;">${{ needs.build.outputs.change_stats }}</pre>
-
-              <h3 style="color:#0d6efd;">Code Changes Preview</h3>
-              <pre style="background:#f8f9fa;padding:12px;border:1px solid #ddd;white-space:pre-wrap;">${{ needs.build.outputs.code_changes }}</pre>
+              
 
               <p>
                 Production environment is now live and updated successfully.
