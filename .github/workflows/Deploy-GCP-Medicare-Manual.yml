@@ -38,7 +38,7 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          fetch-depth: 10
 
       - name: Read Commit Message
         id: commit
@@ -48,35 +48,47 @@ jobs:
           git log -1 --pretty=%B >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Fetch Closed GitHub Issues
+      - name: Fetch Release Notes For Current Deployment
         id: issues
         uses: actions/github-script@v7
         with:
           script: |
+            const { execSync } = require('child_process');
+
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const issues = await github.rest.issues.listForRepo({
-              owner,
-              repo,
-              state: 'closed',
-              sort: 'updated',
-              direction: 'desc',
-              per_page: 5
-            });
+            const commits = execSync("git log -10 --pretty=%B").toString();
 
-            let output = '';
+            const matches = [...commits.matchAll(/#(\d+)/g)];
+            const uniqueIssues = [...new Set(matches.map(m => m[1]))];
 
-            for (const issue of issues.data) {
-              if (!issue.pull_request) {
-                output += `#${issue.number} - ${issue.title}\n`;
-              }
-            }
-
+            if (uniqueIssues.length === 0) {
             core.setOutput(
               "resolved_issues",
-              output || "No recent resolved issues found."
+              "No linked issues found in this deployment."
             );
+            return;
+            }
+
+            let output = "Resolved Issues Included In This Release:\n\n";
+
+            for (const issueNumber of uniqueIssues) {
+            try {
+              const issue = await github.rest.issues.get({
+                owner,
+                repo,
+                issue_number: parseInt(issueNumber)
+              });
+
+              output += `• #${issueNumber} - ${issue.data.title}\n`;
+
+            } catch (error) {
+              output += `• #${issueNumber} - Issue title unavailable\n`;
+            }
+            }
+
+            core.setOutput("resolved_issues", output);
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
